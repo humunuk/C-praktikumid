@@ -1,0 +1,4 @@
+cd /project/root
+make
+cd bin/
+avrdude -p ATMEGA2560 -P /dev/ttyACM3 -c wiring -U flash:w:filename.elf
