@@ -1,12 +1,17 @@
-int uart4_putchar(char c, FILE *stream);
-int uart4_getchar(FILE *stream);
+#ifndef _UART_H_
+#define _UART_H_
 
-void myuart_initialize(void);
-int myuart_putchar(char c, FILE *stream);
+int uart0_putchar(char c, FILE *stream);
+int uart0_getchar(FILE *stream);
 
-void uart4_init(void);
+int uart3_putchar(char c, FILE *stream);
+
+void uart0_initialize(void);
+void uart3_initialize(void);
+
+extern FILE uart0_io;
+extern FILE uart3_out; 
 
 /* http://www.ermicro.com/blog/?p=325 */
+#endif /* _UART_H_ */
 
-FILE uart4_io = FDEV_SETUP_STREAM(uart4_putchar, uart4_getchar, _FDEV_SETUP_RW);
-FILE myuart_out = FDEV_SETUP_STREAM(myuart_putchar, NULL, _FDEV_SETUP_WRITE);

@@ -12,7 +12,7 @@
 
 /* http://www.cs.mun.ca/~rod/Winter2007/4723/notes/serial/serial.html */
 
-void uart4_init(void)
+void uart0_initialize(void)
 {
     UBRR0H = UBRRH_VALUE;
     UBRR0L = UBRRL_VALUE;
@@ -25,7 +25,7 @@ void uart4_init(void)
     UCSR0B = _BV(RXEN0) | _BV(TXEN0);   /* Enable TX */
 }
 
-void myuart_initialize(void)
+void uart3_initialize(void)
 {
     UBRR3H = UBRRH_VALUE;
     UBRR3L = UBRRL_VALUE;
@@ -38,12 +38,12 @@ void myuart_initialize(void)
     UCSR3B = _BV(TXEN3);   /* Enable TX */
 }
 
-int uart4_putchar(char c, FILE *stream)
+int uart0_putchar(char c, FILE *stream)
 {
     (void) stream;
 
     if (c == '\n') {
-        uart4_putchar('\r', stream);
+        uart0_putchar('\r', stream);
     }
 
     loop_until_bit_is_set(UCSR0A, UDRE0);
@@ -51,12 +51,12 @@ int uart4_putchar(char c, FILE *stream)
     return 0;
 }
 
-int myuart_putchar(char c, FILE *stream)
+int uart3_putchar(char c, FILE *stream)
 {
     (void) stream;
 
     if (c == '\n') {
-        myuart_putchar('\r', stream);
+        uart3_putchar('\r', stream);
     }
 
     loop_until_bit_is_set(UCSR3A, UDRE3);
@@ -64,9 +64,12 @@ int myuart_putchar(char c, FILE *stream)
     return 0;
 }
 
-int uart4_getchar(FILE *stream)
+int uart0_getchar(FILE *stream)
 {
     (void) stream;
     loop_until_bit_is_set(UCSR0A, RXC0);
     return UDR0;
 }
+
+FILE uart0_io = FDEV_SETUP_STREAM(uart0_putchar, uart0_getchar, _FDEV_SETUP_RW);
+FILE uart3_out = FDEV_SETUP_STREAM(uart3_putchar, NULL, _FDEV_SETUP_WRITE);
