@@ -4,7 +4,7 @@
 #define VER_FW "Version: " GIT_DESCR " built on: " __DATE__" "__TIME__
 #define VER_AVR "avr-libc version: " __AVR_LIBC_VERSION_STRING__
 #define VER_GCC "gcc version: " __VERSION__
-#define BLINK_DELAY_MS 100
+#define UPTIME "Uptime: "
 
 const char STUD_NAME[] PROGMEM = "Siim Kallari";
 const char CLI_ASK_Q[] PROGMEM = "Enter Month Name First Letter>";
