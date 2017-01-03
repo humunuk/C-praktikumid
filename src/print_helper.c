@@ -1,32 +1,32 @@
 #include <stdio.h>
 #include "print_helper.h"
 
-int print_ascii_table(FILE *stream)
+int print_ascii_table()
 {
     for (char c = ' '; c <= '~'; c++) {
-        if (!fprintf(stream, "%c ", c)) {
+        if (!printf("%c ", c)) {
             return 0;
         }
     }
 
-    return fprintf(stream, "\n");
+    return printf("\n");
 }
 
-int print_for_human(FILE *stream, const unsigned char *array, const size_t len)
+int print_for_human(const unsigned char *array, const size_t len)
 {
     for (size_t i = 0; i < len; i++) {
         if (array[i] >= ' ' && array[i] <= '~') {
-            if (!fprintf(stream, "%c", array[i])) {
+            if (!printf("%c", array[i])) {
                 return 0;
             }
         } else {
-            if (!fprintf(stream, "\"0x%02x\"", array[i])) {
+            if (!printf("\"0x%02x\"", array[i])) {
                 return 0;
             }
         }
     }
 
-    return fprintf(stream, "\n");
+    return printf("\n");
 }
 
 
