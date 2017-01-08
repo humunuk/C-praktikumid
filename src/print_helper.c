@@ -1,32 +1,31 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "print_helper.h"
+#include "../lib/andygock_avr-uart/uart.h"
 
-int print_ascii_table()
+void print_ascii_table()
 {
     for (char c = ' '; c <= '~'; c++) {
-        if (!printf("%c ", c)) {
-            return 0;
-        }
+        uart0_putc(c);
     }
 
-    return printf("\n");
+    uart0_puts("\r\n");
 }
 
-int print_for_human(const unsigned char *array, const size_t len)
+void print_for_human(const unsigned char *array, const size_t len)
 {
+    char c[3];
+
     for (size_t i = 0; i < len; i++) {
         if (array[i] >= ' ' && array[i] <= '~') {
-            if (!printf("%c", array[i])) {
-                return 0;
-            }
+            uart0_putc(array[i]);
         } else {
-            if (!printf("\"0x%02x\"", array[i])) {
-                return 0;
-            }
+            sprintf(c, "\"0x%02x\"", array[i]);
+            uart0_puts(c);
         }
     }
 
-    return printf("\n");
+    uart0_puts("\r\n");
 }
 
 

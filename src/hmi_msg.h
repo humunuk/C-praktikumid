@@ -31,4 +31,8 @@ extern const char ascii_cmd[];
 extern const char ascii_help[];
 extern const char month_cmd[];
 extern const char month_help[];
+extern const char rfid_read_cmd[];
+extern const char rfid_read_help[];
+extern const char mem_cmd[];
+extern const char mem_help[];
 #endif /* _HMI_MSG_H_ */

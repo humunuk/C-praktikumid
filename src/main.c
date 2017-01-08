@@ -11,6 +11,7 @@
 #include "../lib/hd44780_111/hd44780.h"
 #include "../lib/andygock_avr-uart/uart.h"
 #include "../lib/helius_microrl/microrl.h"
+#include "../lib/matejx_avr_lib/mfrc522.h"
 
 #define UART_BAUD 9600
 #define UART_STATUS_MASK 0x00FF
@@ -26,6 +27,13 @@ static inline void init_system_clock(void)
     TCCR5B |= _BV(WGM52) | _BV(CS52); // CTC and fCPU/256
     OCR5A = 62549; // 1 s
     TIMSK5 |= _BV(OCIE5A); // Output Compare A Match Interrupt Enable
+}
+
+static inline void init_rfid_reader(void)
+{
+    /*Init RFID-RC522*/
+    MFRC522_init();
+    PCD_Init();
 }
 
 static inline void init_hw()
@@ -84,6 +92,7 @@ void main (void)
 {
     init_hw();
     init_system_clock();
+    init_rfid_reader();
     sei();
     print_initial_info();
     init_cli();

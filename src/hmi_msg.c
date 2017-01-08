@@ -31,4 +31,8 @@ const char ascii_help[] PROGMEM = "print ASCII tables";
 const char month_cmd[] PROGMEM = "month";
 const char month_help[] PROGMEM =
     "Find matching month from lookup list. Usage: month <string>";
-
+const char rfid_read_cmd[] PROGMEM = "read";
+const char rfid_read_help[] PROGMEM =
+    "Read RFID card thats close to RFID reader";
+const char rfid_read_cmd[] PROGMEM = "mem";
+const char rfid_read_help[] PROGMEM = "Get stats of memory usage";
