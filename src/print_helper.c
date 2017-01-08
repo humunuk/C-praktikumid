@@ -14,8 +14,9 @@ void print_ascii_table()
 
 void print_for_human(const unsigned char *array, const size_t len)
 {
-    char c[3];
-
+    char *c;
+    c = (char *) malloc(sizeof(char) * 3);
+    
     for (size_t i = 0; i < len; i++) {
         if (array[i] >= ' ' && array[i] <= '~') {
             uart0_putc(array[i]);
@@ -24,7 +25,9 @@ void print_for_human(const unsigned char *array, const size_t len)
             uart0_puts(c);
         }
     }
-
+    
+    free(c);
+    
     uart0_puts("\r\n");
 }
 

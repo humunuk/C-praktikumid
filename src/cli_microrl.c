@@ -5,6 +5,7 @@
 #include "../lib/hd44780_111/hd44780.h"
 #include "../lib/andygock_avr-uart/uart.h"
 #include "../lib/matejx_avr_lib/mfrc522.h"
+#include "../lib/andy_brown_memdebug/memdebug.h"
 #include "hmi_msg.h"
 #include "print_helper.h"
 #include "cli_microrl.h"
@@ -144,11 +145,43 @@ void cli_rfid_read(const char *const *argv)
 void cli_mem_stat(const char *const *argv)
 {
     (void) argv;
-    exter int __heap_start, *__brkval;
+    uart0_puts("\r\n");
+    extern int __heap_start, *__brkval;
     int v;
     int space;
     static int prev_space;
-    
+    space = (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+    uart0_puts_P("Heap statistics\r\n");
+    char *stat;
+    stat = (char *) malloc(sizeof(size_t));
+    sprintf(stat, "Used %d\r\n", getMemoryUsed());
+    uart0_puts(stat);
+    (void) space;
+    sprintf(stat, "Free: %d\r\n", getFreeMemory());
+    uart0_puts(stat);
+    uart0_puts_P("\r\nSpace between stack and heap: \r\n");
+    sprintf(stat, "Current %d\r\n", space);
+    uart0_puts(stat);
+    sprintf(stat, "Previous %d\r\n", prev_space);
+    uart0_puts(stat);
+    sprintf(stat, "Change %d\r\n", space - prev_space);
+    uart0_puts(stat);
+    uart0_puts_P("\r\nFreelist\r\n");
+    sprintf(stat, "Freelist size: %d\r\n", getFreeListSize());
+    uart0_puts(stat);
+    sprintf(stat, "Blocks in freelist: %d\r\n", getNumberOfBlocksInFreeList());
+    uart0_puts(stat);
+    sprintf(stat, "Largest block in freelist %d\r\n", 
+            getLargestBlockInFreeList());
+    uart0_puts(stat);
+    sprintf(stat, "Largest freelist block: %d\r\n", 
+            getLargestAvailableMemoryBlock());
+    uart0_puts(stat);
+    sprintf(stat, "Largest allocable block: %d\r\n", 
+            getLargestNonFreeListBlock());
+    uart0_puts(stat);
+    free(stat);
+    prev_space = space;
 }
 
 
@@ -156,7 +189,6 @@ void cli_print_cmd_error(void)
 {
     uart0_puts_P("\r\n");
     uart0_puts_P("Command not implemented.\r\n Use <help> to get help.\r\n");
-    space = (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
 }
 
 

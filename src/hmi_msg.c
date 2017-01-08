@@ -34,5 +34,5 @@ const char month_help[] PROGMEM =
 const char rfid_read_cmd[] PROGMEM = "read";
 const char rfid_read_help[] PROGMEM =
     "Read RFID card thats close to RFID reader";
-const char rfid_read_cmd[] PROGMEM = "mem";
-const char rfid_read_help[] PROGMEM = "Get stats of memory usage";
+const char mem_cmd[] PROGMEM = "mem";
+const char mem_help[] PROGMEM = "Get stats of memory usage";
