@@ -18,7 +18,6 @@ Also, SS (CS) is not controlled by these methods. It's the responsibility of the
 #include <avr/interrupt.h>
 
 #include "spi.h"
-#include "swdefs.h"
 #include "hwdefs.h"
 
 #ifdef SPI_USE_CMT
