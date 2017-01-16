@@ -1,3 +1,14 @@
+/******************************************************************
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+******************************************************************/
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -8,6 +19,7 @@
 #include <time.h>
 #include "hmi_msg.h"
 #include "cli_microrl.h"
+#include "rfid_access.h"
 #include "../lib/hd44780_111/hd44780.h"
 #include "../lib/andygock_avr-uart/uart.h"
 #include "../lib/helius_microrl/microrl.h"
@@ -15,6 +27,8 @@
 
 #define UART_BAUD 9600
 #define UART_STATUS_MASK 0x00FF
+#define DOOR_OPEN PORTA |= _BV(PORTA1)
+#define DOOR_CLOSE PORTA &= ~_BV(PORTA1)
 
 //Microrl object and pointer on it
 microrl_t rl;
@@ -88,6 +102,52 @@ static inline void init_cli(void)
     microrl_set_execute_callback(prl, cli_execute);
 }
 
+static inline void handle_door()
+{
+    time_t cur_time = time(NULL);
+    static time_t message_start;
+    static time_t door_open_start;
+    
+    if (PICC_IsNewCardPresent()) {
+        Uid uid;
+        card_t card;
+        PICC_ReadCardSerial(&uid);
+        card.size = uid.size;
+        memcpy(&card.uid, &uid.uidByte, uid.size);
+        card.user = NULL;
+        card_t *found_card = find_card(&card);
+        if (found_card) {
+            lcd_goto(0x40);
+            lcd_puts(found_card->user);
+            for (int i = 0; i < 16; i++) {
+                lcd_putc(' ');
+            }
+            DOOR_OPEN;
+        } else {
+            DOOR_CLOSE;
+            lcd_goto(LCD_ROW_2_START);
+            lcd_puts("Access denied");
+            for (int i = 0; i < 16; i++) {
+                lcd_putc(' ');
+            }
+        }
+        door_open_start = cur_time;
+        message_start = cur_time;
+    }
+    if ((message_start + 2) < cur_time) {
+        // clean the screen once again in 10 secconds so that cli command
+        // `month` could show found months for some time
+        message_start = cur_time + 2;
+        lcd_goto(LCD_ROW_2_START);
+        for (int i = 0; i < 16; i++) {
+            lcd_putc(' ');
+        }
+    }
+    if ((door_open_start + 2) < cur_time) {
+        DOOR_CLOSE;
+    }
+}
+
 void main (void)
 {
     init_hw();
@@ -100,6 +160,7 @@ void main (void)
     while (1) {
         heartbeat();
         microrl_insert_char(prl, cli_get_char());
+        handle_door();
     }
 }
 

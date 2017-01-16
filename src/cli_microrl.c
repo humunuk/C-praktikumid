@@ -1,3 +1,14 @@
+/******************************************************************
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+******************************************************************/
 #include <stdio.h>
 #include <string.h>
 #include <avr/pgmspace.h>
@@ -9,6 +20,7 @@
 #include "hmi_msg.h"
 #include "print_helper.h"
 #include "cli_microrl.h"
+#include "rfid_access.h"
 
 
 const cli_cmd_t cli_cmds[] = {
@@ -17,6 +29,9 @@ const cli_cmd_t cli_cmds[] = {
     {ascii_cmd, ascii_help, cli_print_ascii_tbls, 0},
     {month_cmd, month_help, cli_handle_month, 1},
     {rfid_read_cmd, rfid_read_help, cli_rfid_read, 0},
+    {rfid_add_cmd, rfid_add_help, cli_rfid_add, 1},
+    {rfid_list_cmd, rfid_list_help, cli_rfid_list, 0},
+    {rfid_remove_cmd, rfid_remove_help, cli_rfid_remove, 0},
     {mem_cmd, mem_help, cli_mem_stat, 0}
 };
 
@@ -117,12 +132,22 @@ void cli_rfid_read(const char *const *argv)
         uart0_puts("Card selected!\r\n");
         PICC_ReadCardSerial(uid_ptr);
         
-        char size[sizeof(uid.size)];
+        char *size;
+        size = (char *) malloc(sizeof(uid.size));
+        if (size == NULL) {
+            uart0_puts_p(OUT_OF_MEM);
+            exit(1);
+        }
         sprintf(size, "Uid size: 0x%02X\r\n", uid.size);
         uart0_puts(size);
         free(size);
         
-        char sak[sizeof(uid.sak)];
+        char *sak;
+        sak = (char *) malloc(sizeof(uid.sak));
+        if (sak == NULL) {
+            uart0_puts_p(OUT_OF_MEM);
+            exit(1);
+        }
         sprintf(sak, "Uid sak: 0x%02X\r\n", uid.sak);
         uart0_puts(sak);
         free(sak);
@@ -130,7 +155,12 @@ void cli_rfid_read(const char *const *argv)
         uart0_puts("Card UID: ");
         
         for (byte i = 0; i < uid.size; i++) {
-            char serial[sizeof(uid.uidByte[i]) / sizeof(uid.uidByte[0])];
+            char *serial;
+            serial = (char *) malloc(sizeof(sizeof(uid.uidByte[i]) / sizeof(uid.uidByte[0])));
+            if (serial == NULL) {
+                uart0_puts_p(OUT_OF_MEM);
+                exit(1);
+            }
             sprintf(serial, "%02X", uid.uidByte[i]);
             uart0_puts(serial);
             free(serial);
@@ -140,6 +170,83 @@ void cli_rfid_read(const char *const *argv)
     } else {
         uart0_puts_P("Unable to select card.\r\n");
     }
+}
+
+void cli_rfid_add(const char *const *argv)
+{
+    uart0_puts_P("\r\n");
+    
+    if (PICC_IsNewCardPresent()) {
+        uart0_puts("Trying to add card!\r\n");
+        Uid uid;
+        Uid *uid_ptr = &uid;
+        PICC_ReadCardSerial(uid_ptr);
+        
+        card_t *card;
+        card = malloc(sizeof(card_t));
+        
+        if (card == NULL) {
+            uart0_puts_p(OUT_OF_MEM);
+            exit(1);
+        }
+        
+        card->size = uid.size;
+        memmove(&card->uid, &uid.uidByte, uid.size);
+        
+        card->user = malloc(strlen(argv[1])+1);
+        
+        if (card->user == NULL) {
+            uart0_puts_p(OUT_OF_MEM);
+            exit(1);
+        }
+        
+        strcpy(card->user, argv[1]);
+        card->next = NULL;
+        add_card(card);
+        
+        free(card);
+    } else {
+        uart0_puts_P("Unable to select card.\r\n");
+    }
+}
+
+void cli_rfid_remove(const char *const *argv)
+{
+    uart0_puts_P("\r\n");
+    
+    if (PICC_IsNewCardPresent()) {
+        uart0_puts("Trying to remove card!\r\n");
+        Uid uid;
+        Uid *uid_ptr = &uid;
+        PICC_ReadCardSerial(uid_ptr);
+        
+        card_t *card;
+        
+        card->size = uid.size;
+        memmove(&card->uid, &uid.uidByte, uid.size);
+        
+        card->user = malloc(strlen(argv[1])+1);
+        
+        if (card->user == NULL) {
+            uart0_puts_p(OUT_OF_MEM);
+            exit(1);
+        }
+        
+        strcpy(card->user, argv[1]);
+        card->next = NULL;
+        remove_card(card);
+        
+        free(card);
+    } else {
+        uart0_puts_P("Unable to select card.\r\n");
+    }
+}
+
+void cli_rfid_list(const char *const *argv)
+{
+    (void) argv;
+    uart0_puts_p("\r\n");
+    print_card_list();
 }
 
 void cli_mem_stat(const char *const *argv)
@@ -153,10 +260,13 @@ void cli_mem_stat(const char *const *argv)
     space = (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
     uart0_puts_P("Heap statistics\r\n");
     char *stat;
-    stat = (char *) malloc(sizeof(size_t));
+    stat = malloc(sizeof(size_t));
+    if (stat == NULL) {
+        uart0_puts_p(OUT_OF_MEM);
+        exit(1);
+    }
     sprintf(stat, "Used %d\r\n", getMemoryUsed());
     uart0_puts(stat);
-    (void) space;
     sprintf(stat, "Free: %d\r\n", getFreeMemory());
     uart0_puts(stat);
     uart0_puts_P("\r\nSpace between stack and heap: \r\n");

@@ -17,6 +17,11 @@ void print_for_human(const unsigned char *array, const size_t len)
     char *c;
     c = (char *) malloc(sizeof(char) * 3);
     
+    if (c == NULL) {
+        uart0_puts_p("Can not allocate memory");
+        exit(1);
+    }
+    
     for (size_t i = 0; i < len; i++) {
         if (array[i] >= ' ' && array[i] <= '~') {
             uart0_putc(array[i]);
